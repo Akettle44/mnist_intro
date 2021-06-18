@@ -18,6 +18,13 @@ Notes on conv layer sizes + amounts:
 	More of an art, no definative way
 	Suggestions are start with smaller layers and build your way up, reviewing loss
 
+Numpy notes:
+	Axis 0 = rows 
+	Axis 1 = col
+	Be careful, some functions ask for the axis to calculate along
+		Ex: Row sum is sum across columns, so axis = 1
+	argmax can be used to determine the indecies of the maximums
+
 Attempted configurations:
 
 unchanged:

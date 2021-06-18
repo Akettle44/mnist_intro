@@ -66,7 +66,7 @@ def setup_data(train, test):
 				loss='categorical_crossentropy',
 				metrics=['accuracy'])
 
-	return X_train, X_val, Y_train, Y_val, model
+	return X_train, X_val, Y_train, Y_val, model, test
 
 def plot_history(history, graph_type):
 	history_dic = history.history
@@ -98,11 +98,20 @@ def main():
 
 	train = pd.read_csv("~/projects/deep_learning/mnist/datasets/train.csv")
 	test = pd.read_csv("~/projects/deep_learning/mnist/datasets/test.csv")
-	explore_data(train, test)
-	X_train, X_val, Y_train, Y_val, model = setup_data(train, test)
-	history = model.fit(X_train, Y_train, epochs=10, batch_size=64, validation_data=(X_val, Y_val))
-	plot_history(history, "acc")
-	plot_history(history, "loss")
+	#explore_data(train, test)
+	X_train, X_val, Y_train, Y_val, model, test = setup_data(train, test)
+	history = model.fit(X_train, Y_train, epochs=5, batch_size=64, validation_data=(X_val, Y_val))
+	#plot_history(history, "acc")
+	#plot_history(history, "loss")
+
+	#softmax therefore predictions are max of each row's tensor
+	pred = model.predict(test)
+	#max axis refers to axis that it is calculated along: Calc along columns = row max
+	output = np.argmax(pred, axis = 1)
+	
+	#create submission file
+	submission = pd.DataFrame({'ImageId': range(1, len(output)+1), 'Label': output})
+	submission.to_csv("submission.csv", index = False)
 
 if __name__ == "__main__":
 	main()
