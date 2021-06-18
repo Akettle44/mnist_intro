@@ -8,72 +8,66 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-#following tutorial on kaggle
+#following tutorial on kaggle + help from keras textbook
 
-train = pd.read_csv("~/projects/deep_learning/mnist/datasets/train.csv")
-test = pd.read_csv("~/projects/deep_learning/mnist/datasets/test.csv")
+def explore_data(train, test):
+	print(train.head())
+	print(test.head())
+	#Arranaged in 28x28 images = 785 total pixels per image
+	#Training set contains image in each row (where the columns are arranged in a 1d fashion)
+	print(len(train))
+	print(len(test))
 
-#Arranaged in 28x28 images = 785 total pixels per image
-#Training set contains image in each row (where the columns are arranged in a 1d fashion)
-
-def early_exploration():
-	train.head()
-	test.head()
-
-	len(train.rows)
-	len(test)
+	#check data for nulls (only 1 unique value and it is false therefore no values are missing)
+	print(train.isnull().any().describe())
+	print(test.isnull().any().describe())
 
 ### SETTING UP DATA
-#def setup_data(): 
-#the training labels
-Y_train = train["label"]
-#training features (axis 1 is columns)
-X_train = train.drop(labels = ["label"], axis=1)
+def setup_data(train, test): 
+	#the training labels
+	Y_train = train["label"]
+	#training features (axis 1 is columns)
+	X_train = train.drop(labels = ["label"], axis=1)
 
-#data set looks fairly balanced, each label frequency is similar
-sns.countplot(Y_train)
-#plt.show()
+	#data set looks fairly balanced, each label frequency is similar
+	#sns.countplot(Y_train)
+	#plt.show()
 
-#check data for nulls (only 1 unique value and it is false therefore no values are missing)
-X_train.isnull().any().describe()
-test.isnull().any().describe()
+	#normalize data (makes model perform better)
+	X_train /= 255.0
+	test /= 255.0
 
-#normalize data (makes model perform better)
-X_train /= 255.0
-test /= 255.0
+	#reshape data to prepare it for model, (can also use -1 instead of X_train.index)
+	#reshape is 42k 28x28 gray scale images
+	X_train = X_train.values.reshape(X_train.shape[0], 28, 28, 1)
+	test = test.values.reshape(test.shape[0], 28, 28, 1)
+	#one hot encoding
+	Y_train = to_categorical(Y_train, num_classes=10)
 
-#reshape data to prepare it for model, (can also use -1 instead of X_train.index)
-#reshape is 42k 28x28 gray scale images
-X_train = X_train.values.reshape(X_train.shape[0], 28, 28, 1)
-test = test.values.reshape(test.shape[0], 28, 28, 1)
-#one hot encoding
-Y_train = to_categorical(Y_train, num_classes=10)
+	#splitting up into training and testing data
+	X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train, test_size=0.15, random_state=3)
 
-#splitting up into training and testing data
-X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train, test_size=0.15, random_state=3)
+	#visualizing each of the images
+	#plt.imshow(X_train[1], cmap=pyplot.get_cmap('gray'))
 
-#visualizing each of the images
-plt.imshow(X_train[1], cmap=pyplot.get_cmap('gray'))
+	model = models.Sequential()
 
-#MODEL
-model = models.Sequential()
+	#play around with the layer values later 
+	model.add(layers.Conv2D(32, (3,3), activation='relu',input_shape=(28, 28, 1)))
+	model.add(layers.MaxPooling2D((2, 2)))
+	model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+	model.add(layers.MaxPooling2D((2, 2)))
+	model.add(layers.Conv2D(64, (3, 3), activation='relu'))
 
-#play around with the layer values later 
-model.add(layers.Conv2D(32, (3,3), activation='relu',input_shape=(28, 28, 1)))
-model.add(layers.MaxPooling2D((2, 2)))
-model.add(layers.Conv2D(64, (3, 3), activation='relu'))
-model.add(layers.MaxPooling2D((2, 2)))
-model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+	model.add(layers.Flatten())
+	model.add(layers.Dense(64, activation='relu'))
+	model.add(layers.Dense(10, activation='softmax'))
 
-model.add(layers.Flatten())
-model.add(layers.Dense(64, activation='relu'))
-model.add(layers.Dense(10, activation='softmax'))
+	model.compile(optimizer='rmsprop',
+				loss='categorical_crossentropy',
+				metrics=['accuracy'])
 
-model.compile(optimizer='rmsprop',
-			  loss='categorical_crossentropy',
-			  metrics=['accuracy'])
-
-history = model.fit(X_train, Y_train, epochs=4, batch_size=64, validation_data=(X_val, Y_val))
+	return X_train, X_val, Y_train, Y_val, model
 
 def plot_history(history, graph_type):
 	history_dic = history.history
@@ -100,5 +94,17 @@ def plot_history(history, graph_type):
 	plt.legend()
 	plt.show()
 
-plot_history(history, "acc")
-plot_history(history, "loss")
+def main():
+	train = pd.read_csv("~/projects/deep_learning/mnist/datasets/train.csv")
+	test = pd.read_csv("~/projects/deep_learning/mnist/datasets/test.csv")
+	explore_data(train, test)
+	X_train, X_val, Y_train, Y_val, model = setup_data(train, test)
+	history = model.fit(X_train, Y_train, epochs=4, batch_size=64, validation_data=(X_val, Y_val))
+	plot_history(history, "acc")
+	plot_history(history, "loss")
+
+if __name__ == "__main__":
+	main()
+
+
+
