@@ -53,10 +53,13 @@ def setup_data(train, test):
 	model = models.Sequential()
 
 	#play around with the layer values later 
-	model.add(layers.Conv2D(32, (3,3), activation='relu',input_shape=(28, 28, 1)))
+	model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 1)))
+	#model.add(layers.Conv2D(32, (3, 3), padding="same", activation='relu', input_shape=(28, 28, 1)))
 	model.add(layers.MaxPooling2D((2, 2)))
 	model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+	#model.add(layers.Conv2D(64, (3, 3), padding="same", activation='relu'))
 	model.add(layers.MaxPooling2D((2, 2)))
+	#model.add(layers.Conv2D(64, (3, 3), padding="same", activation='relu'))
 	model.add(layers.Conv2D(64, (3, 3), activation='relu'))
 
 	model.add(layers.Flatten())
@@ -71,6 +74,7 @@ def setup_data(train, test):
 
 def plot_history(history, graph_type):
 	history_dic = history.history
+	print(history_dic)
 	train = None
 	validation = None
 	train_label = "Training " + graph_type
@@ -95,11 +99,12 @@ def plot_history(history, graph_type):
 	plt.show()
 
 def main():
+
 	train = pd.read_csv("~/projects/deep_learning/mnist/datasets/train.csv")
 	test = pd.read_csv("~/projects/deep_learning/mnist/datasets/test.csv")
 	explore_data(train, test)
 	X_train, X_val, Y_train, Y_val, model = setup_data(train, test)
-	history = model.fit(X_train, Y_train, epochs=4, batch_size=64, validation_data=(X_val, Y_val))
+	history = model.fit(X_train, Y_train, epochs=10, batch_size=64, validation_data=(X_val, Y_val))
 	plot_history(history, "acc")
 	plot_history(history, "loss")
 

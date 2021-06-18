@@ -1,0 +1,53 @@
+There is a difference between sklearns train test split and keras validation_split
+	Keras is split based on index and sklearn is random
+
+Conv nets typically like data between 0 and 1, which means features should be normalized 
+	For grayscale (8-bit), this would mean sample = sample / 255;
+
+Categorical labels are often converted to one hot encoding if they don't depend on eachother 
+	For example: if there are 10 labels, 3 could be: [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
+	But for other problems it doesn't have to be index based, they just need to be unique
+
+Remember which functions are in place and which aren't (or look it up), reshape is not in place.
+
+Attempted configurations:
+
+unchanged:
+	optimizer = stock rmsprop
+	loss = categorical categorical_crossentropy
+	metric = accuracy
+
+1.) 32 Layer Conv2d, 3x3, no padding, relu, (28, 28 input) 
+	Maxpool(2,2)
+	64 Layer Conv2d, 3x3, no padding, relu, auto shape
+	Maxpool(2,2)
+	64 Layer Conv2d, 3x3, no padding, relu, auto shape 
+	Maxpool(2,2)
+	Flattening
+	64 Layer Dense Relu
+	10 Layer Dense softmax
+	32 batch size
+	10 epochs
+
+	results:
+	{'loss': [0.1910935789346695, 0.05411963909864426, 0.03767769783735275, 0.029166854918003082, 0.0217508003115654, 0.018715720623731613, 0.014973818324506283, 0.013147562742233276, 0.011285507120192051, 0.010343708097934723]
+	 'accuracy': [0.9410364031791687, 0.9832212924957275, 0.9884313941001892, 0.9912045001983643, 0.9936694502830505, 0.9944537878036499, 0.9957423210144043, 0.9961344599723816, 0.9968907833099365, 0.997226893901825],
+	 'val_loss': [0.0848434790968895, 0.0576842725276947, 0.06225908175110817, 0.05616123601794243, 0.05286434292793274, 0.06307103484869003, 0.07512201368808746, 0.06222500279545784, 0.07782766968011856, 0.08049710094928741],
+	 'val_accuracy': [0.9725396633148193, 0.9820634722709656, 0.9830158948898315, 0.9839682579040527, 0.9861904978752136, 0.9847618937492371, 0.9826984405517578, 0.9833333492279053, 0.9852380752563477, 0.9858730435371399]}
+
+	 interesting things to note:
+	 	- loss drops off substantially from 1st epoch to second, not sure why the difference is so big
+		- Val accuracy stops increasing around 4th epoch 
+		- Val accuracy stops increasing but training accuracy does, suggests overfitting after epoch 5
+
+2.) Same as 1 except batch size is changed to 64
+
+	results:
+	{'loss': [0.2281169444322586, 0.05770596116781235, 0.038486652076244354, 0.028401201590895653, 0.02325424924492836, 0.01668669283390045, 0.014486570842564106, 0.012094313278794289, 0.009690418839454651, 0.0076378025114536285],
+	 'accuracy': [0.9283193349838257, 0.9822689294815063, 0.9881512522697449, 0.9906722903251648, 0.9929692149162292, 0.9946778416633606, 0.995658278465271, 0.9959383606910706, 0.9967226982116699, 0.9975069761276245],
+	 'val_loss': [0.0737806186079979, 0.062398236244916916, 0.05378478392958641, 0.052498381584882736, 0.050567224621772766, 0.06720584630966187, 0.05315219983458519, 0.07401740550994873, 0.061668042093515396, 0.07594449818134308],
+	 'val_accuracy': [0.977142870426178, 0.9804762005805969, 0.9830158948898315, 0.9855555295944214, 0.9852380752563477, 0.9833333492279053, 0.9873015880584717, 0.9834920763969421, 0.9865079522132874, 0.9839682579040527]}
+
+	interesting things to note:
+		- Model still appears to be overfitting after 5 epochs 
+		- Increased batch size marginally increased validation accuracy
